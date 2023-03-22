@@ -17,10 +17,7 @@ class Deck
   end
 
   def percent_high_ranking
-    high = @cards.select do |card|
-      card.rank > 11
-    end
-    percentage = high.count/@cards.count.to_f
+    percentage = self.high_ranking_cards.count/@cards.count.to_f
     (percentage * 100).round(2)
   end
 
