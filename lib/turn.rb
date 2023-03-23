@@ -4,19 +4,30 @@ class Turn
   def initialize(player1, player2)
       @player1 = player1
       @player2 = player2
-      @player1_first_card = @player1.deck.rank_of_card_at(0)
-      @player2_first_card = @player2.deck.rank_of_card_at(0)
-      @player1_third_card = @player1.deck.rank_of_card_at(2)
-      @player2_third_card = @player2.deck.rank_of_card_at(2)
+      @player1_card1 = @player1.deck.rank_of_card_at(0)
+      @player2_card1 = @player2.deck.rank_of_card_at(0)
+      @player1_card2 = @player1.deck.rank_of_card_at(1)
+      @player2_card2 = @player2.deck.rank_of_card_at(1)
+      @player1_card3 = @player1.deck.rank_of_card_at(2)
+      @player2_card3 = @player2.deck.rank_of_card_at(2)
       @spoils_of_war = []
       @type = self.type
       @won = self.winner
+      @no_winner = Player.new("No Winner", Deck.new([]))
   end
 
   def type
-    if @player1_first_card == @player2_first_card && @player1_third_card == @player2_third_card
+    if (
+        @player1_card1 == @player2_card1 &&
+        @player1_card3 == @player2_card3 &&
+        @player1_card1 != 0 &&
+        @player1_card3 != 0
+        )
       @type = :mutually_assured_destruction
-    elsif @player1_first_card == @player2_first_card
+    elsif (
+        @player1_card1 == @player2_card1 &&
+        @player1_card1 != 0
+        )
       @type = :war
     else
       @type = :basic
@@ -25,26 +36,42 @@ class Turn
   end
 
   def winner
-    if @type == :mutually_assured_destruction
-      @won = Player.new("No Winner", [])
+    if @type == :basic
+      if @player1_card1 > @player2_card1 
+        @won = player1
+      elsif @player1_card1 < @player2_card1
+        @won = player2
+      else
+        @won = @no_winner
+      end
     elsif @type == :war
-      @player1_third_card > @player2_third_card ? @won = player1 : @won = player2
+      if @player1_card3 > @player2_card3
+        @won = player1
+      elsif @player1_card3 < @player2_card3
+        @won = player2
+      elsif @player1_card2 > @player2_card2
+        @won = player1
+      elsif @player1_card2 < @player2_card2
+        @won = player2
+      else
+        @won = @no_winner
+      end
     else
-      @player1_first_card > @player2_first_card ? @won = player1 : @won = player2
+      @won = @no_winner
     end
     @won
   end
 
   def pile_cards
-    if @type == :mutually_assured_destruction
-      3.times {@player1.deck.remove_card}
-      3.times {@player2.deck.remove_card}
-    elsif @type == :war
-      3.times {spoils_of_war << @player1.deck.remove_card}
-      3.times {spoils_of_war << @player2.deck.remove_card}
-    else
+    if @type == :basic
       spoils_of_war << @player1.deck.remove_card
       spoils_of_war << @player2.deck.remove_card
+    elsif @type == :war
+      3.times {spoils_of_war << @player1.deck.remove_card if @player1.deck.cards.count >0}
+      3.times {spoils_of_war << @player2.deck.remove_card if @player2.deck.cards.count >0}
+    else
+      3.times {@player1.deck.remove_card}
+      3.times {@player2.deck.remove_card}
     end
   end
 
